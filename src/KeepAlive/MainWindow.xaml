@@ -1,0 +1,57 @@
+<Window x:Class="KeepAlive.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Keep Alive"
+        Width="460"
+        Height="340"
+        MinWidth="420"
+        MinHeight="320"
+        WindowStartupLocation="CenterScreen"
+        Icon="Assets/keep-alive.png">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal">
+            <Image Width="44"
+                   Height="44"
+                   Margin="0,0,14,0"
+                   Source="Assets/keep-alive.png" />
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock FontSize="22" FontWeight="SemiBold" Text="Keep Alive" />
+                <TextBlock Margin="0,3,0,0"
+                           Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"
+                           Text="Timed Windows keep-awake sessions" />
+            </StackPanel>
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Margin="0,28,0,24"
+                Padding="24"
+                Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+                CornerRadius="12">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <Ellipse Width="18"
+                         Height="18"
+                         Fill="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                <TextBlock Margin="0,12,0,0"
+                           HorizontalAlignment="Center"
+                           FontSize="20"
+                           FontWeight="SemiBold"
+                           Text="Inactive" />
+                <TextBlock Margin="0,6,0,0"
+                           HorizontalAlignment="Center"
+                           Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"
+                           Text="No keep-awake session is running." />
+            </StackPanel>
+        </Border>
+
+        <TextBlock Grid.Row="2"
+                   HorizontalAlignment="Center"
+                   Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"
+                   Text="Ready" />
+    </Grid>
+</Window>
