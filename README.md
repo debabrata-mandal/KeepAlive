@@ -7,7 +7,9 @@ Keep Alive is a Windows tray utility for timed keep-awake sessions with manual c
 
 ## Current status
 
-Phase 1 establishes the Windows application shell, automatic system-theme styling, single-instance activation, tests, and continuous integration. The timed keep-awake engine and tray controls are planned for later phases.
+Phase 2 adds the tested timed-session engine, Windows keep-awake integration, duration limits, and suspend/resume handling. The tray controls and completed session interface are planned for the next phase.
+
+The engine supports 15-minute, 30-minute, 1-hour, 2-hour, and 4-hour presets plus custom durations from 1 minute through 8 hours. Sessions are not yet exposed through the Phase 1 window.
 
 ## Requirements
 
