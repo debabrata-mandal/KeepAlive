@@ -8,13 +8,22 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: keep-alive-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  build-and-test:
+  build_and_test:
     runs-on: windows-latest
+    outputs:
+      release_version: ${{ steps.version.outputs.release_version }}
+      should_release: ${{ steps.version.outputs.should_release }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
@@ -28,16 +37,12 @@ jobs:
         id: version
         shell: pwsh
         run: |
-          [xml]$project = Get-Content 'src/KeepAlive/KeepAlive.csproj'
-          $baseVersion = [string]$project.Project.PropertyGroup.Version
-          if ([string]::IsNullOrWhiteSpace($baseVersion)) { throw 'The project version is missing.' }
-
-          $coreVersion = $baseVersion.Split('-')[0]
-          $productVersion = "$baseVersion-ci.${{ github.run_number }}"
-          $fileVersion = "$coreVersion.${{ github.run_number }}"
-          "product=$productVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "file=$fileVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          Write-Output "Build version: $productVersion"
+          $result = ./build/Resolve-Version.ps1 -BuildNumber ${{ github.run_number }} | ConvertFrom-Json
+          "product=$($result.BuildVersion)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "file=$($result.FileVersion)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "release_version=$($result.ReleaseVersion)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "should_release=$($result.ShouldRelease.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          Write-Output "Build version: $($result.BuildVersion); bump: $($result.Bump)"
 
       - name: Build
         run: >-
@@ -47,3 +52,43 @@ jobs:
 
       - name: Test
         run: dotnet test KeepAlive.sln --configuration Release --no-build
+
+  publish_release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.build_and_test.outputs.should_release == 'true'
+    needs: build_and_test
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Package portable Windows build
+        shell: pwsh
+        run: ./build/Publish.ps1 -Version '${{ needs.build_and_test.outputs.release_version }}'
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = '${{ needs.build_and_test.outputs.release_version }}'
+          $tag = "v$version"
+          $archive = "artifacts/releases/KeepAlive-$version-win-x64.zip"
+          $checksum = "$archive.sha256"
+
+          gh release create $tag $archive $checksum `
+            --target '${{ github.sha }}' `
+            --generate-notes `
+            --latest `
+            --title "Keep Alive $version"
+
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release creation failed.' }
