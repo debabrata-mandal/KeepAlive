@@ -7,9 +7,9 @@ Keep Alive is a Windows tray utility for timed keep-awake sessions with manual c
 
 ## Current status
 
-Phase 3 provides the complete timed-session interface and system-tray experience. Users can start and stop sessions, select a preset or custom duration, watch the live countdown, minimize the app to the tray, and receive expiry notifications.
+Phase 4 provides the complete timed-session interface, system-tray experience, persistent settings, and local session history. Users can start and stop sessions, select a preset or custom duration, watch the live countdown, minimize the app to the tray, and configure notifications.
 
-The app supports 15-minute, 30-minute, 1-hour, 2-hour, and 4-hour presets plus custom durations from 1 minute through 8 hours. History and settings persistence are planned for Phase 4.
+The app supports 15-minute, 30-minute, 1-hour, 2-hour, and 4-hour presets plus custom durations from 1 minute through 8 hours. Settings include a default duration, notification preferences, and optional per-user launch at Windows sign-in. Session history is stored locally for up to 90 days or 1,000 records.
 
 ## Requirements
 

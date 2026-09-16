@@ -20,10 +20,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     private string _endTimeText = string.Empty;
     private bool _isActive;
     private DurationOption _selectedDurationOption;
+    private int _selectedTabIndex;
 
-    public MainWindowViewModel(ISessionController sessionController)
+    public MainWindowViewModel(ISessionController sessionController, SettingsViewModel settings, HistoryViewModel history)
     {
         _sessionController = sessionController ?? throw new ArgumentNullException(nameof(sessionController));
+        Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+        History = history ?? throw new ArgumentNullException(nameof(history));
         DurationOptions =
         [
             new("15 minutes", TimeSpan.FromMinutes(15)),
@@ -37,9 +40,11 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
         StartCommand = new RelayCommand(StartSession, CanStartSession);
         StopCommand = new RelayCommand(StopSession, () => IsActive);
+        ApplyDefaultDuration();
 
         _sessionController.StateChanged += OnStateChanged;
         _sessionController.SessionCompleted += OnSessionCompleted;
+        Settings.SettingsChanged += OnSettingsChanged;
         ApplySnapshot(_sessionController.Snapshot);
     }
 
@@ -47,9 +52,19 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
     public IReadOnlyList<DurationOption> DurationOptions { get; }
 
+    public SettingsViewModel Settings { get; }
+
+    public HistoryViewModel History { get; }
+
     public RelayCommand StartCommand { get; }
 
     public RelayCommand StopCommand { get; }
+
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set => SetField(ref _selectedTabIndex, value);
+    }
 
     public DurationOption SelectedDurationOption
     {
@@ -137,7 +152,19 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
     {
         _sessionController.StateChanged -= OnStateChanged;
         _sessionController.SessionCompleted -= OnSessionCompleted;
+        Settings.SettingsChanged -= OnSettingsChanged;
+        History.Dispose();
     }
+
+    public void ShowSession() => SelectedTabIndex = 0;
+
+    public void ShowHistory()
+    {
+        History.Refresh();
+        SelectedTabIndex = 1;
+    }
+
+    public void ShowSettings() => SelectedTabIndex = 2;
 
     private bool CanStartSession() => IsInactive && SelectedDuration is not null;
 
@@ -183,6 +210,29 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
         {
             ErrorMessage = e.Session.ErrorMessage ?? "Windows could not update the keep-awake request.";
         }
+    }
+
+    private void OnSettingsChanged(object? sender, EventArgs e)
+    {
+        if (IsInactive)
+        {
+            ApplyDefaultDuration();
+        }
+    }
+
+    private void ApplyDefaultDuration()
+    {
+        int defaultMinutes = Settings.CurrentSettings.DefaultDurationMinutes;
+        DurationOption? preset = DurationOptions.FirstOrDefault(option => option.Duration?.TotalMinutes == defaultMinutes);
+
+        if (preset is not null)
+        {
+            SelectedDurationOption = preset;
+            return;
+        }
+
+        SelectedDurationOption = DurationOptions.Single(option => option.IsCustom);
+        CustomMinutesText = defaultMinutes.ToString(CultureInfo.InvariantCulture);
     }
 
     private void ApplySnapshot(SessionSnapshot snapshot)

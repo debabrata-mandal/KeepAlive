@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using KeepAlive.Presentation.ViewModels;
+using MessageBox = System.Windows.MessageBox;
 
 namespace KeepAlive;
 
@@ -32,6 +33,20 @@ public partial class MainWindow : Window
     }
 
     public void AllowClose() => _allowClose = true;
+
+    private void OnClearHistoryClicked(object sender, RoutedEventArgs e)
+    {
+        MessageBoxResult result = MessageBox.Show(
+            "Clear all locally stored session history?",
+            "Clear history",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Question);
+
+        if (result == MessageBoxResult.Yes && DataContext is MainWindowViewModel viewModel)
+        {
+            viewModel.History.Clear();
+        }
+    }
 
     private void OnClosing(object? sender, CancelEventArgs e)
     {

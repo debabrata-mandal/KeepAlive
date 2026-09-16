@@ -9,16 +9,24 @@ public sealed class SessionNotificationCoordinator : IDisposable
     private static readonly TimeSpan WarningThreshold = TimeSpan.FromMinutes(5);
 
     private readonly IUserNotificationService _notifications;
+    private readonly Func<bool> _notifyBeforeEnd;
+    private readonly Func<bool> _notifyOnStop;
     private readonly ISessionController _sessionController;
 
     private Guid? _activeSessionId;
     private TimeSpan? _previousRemaining;
     private bool _warningShown;
 
-    public SessionNotificationCoordinator(ISessionController sessionController, IUserNotificationService notifications)
+    public SessionNotificationCoordinator(
+        ISessionController sessionController,
+        IUserNotificationService notifications,
+        Func<bool> notifyBeforeEnd,
+        Func<bool> notifyOnStop)
     {
         _sessionController = sessionController ?? throw new ArgumentNullException(nameof(sessionController));
         _notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
+        _notifyBeforeEnd = notifyBeforeEnd ?? throw new ArgumentNullException(nameof(notifyBeforeEnd));
+        _notifyOnStop = notifyOnStop ?? throw new ArgumentNullException(nameof(notifyOnStop));
         _sessionController.StateChanged += OnStateChanged;
         _sessionController.SessionCompleted += OnSessionCompleted;
     }
@@ -44,7 +52,7 @@ public sealed class SessionNotificationCoordinator : IDisposable
             return;
         }
 
-        if (!_warningShown && _previousRemaining > WarningThreshold && e.Snapshot.Remaining <= WarningThreshold)
+        if (_notifyBeforeEnd() && !_warningShown && _previousRemaining > WarningThreshold && e.Snapshot.Remaining <= WarningThreshold)
         {
             _notifications.Show(new UserNotification(
                 "Keep Alive",
@@ -60,8 +68,8 @@ public sealed class SessionNotificationCoordinator : IDisposable
     {
         UserNotification? notification = e.Session.EndReason switch
         {
-            SessionEndReason.TimerExpired => new UserNotification("Keep Alive", "The keep-awake session ended on schedule.", NotificationKind.Information),
-            SessionEndReason.StoppedManually => new UserNotification("Keep Alive", "The keep-awake session was stopped.", NotificationKind.Information),
+            SessionEndReason.TimerExpired when _notifyOnStop() => new UserNotification("Keep Alive", "The keep-awake session ended on schedule.", NotificationKind.Information),
+            SessionEndReason.StoppedManually when _notifyOnStop() => new UserNotification("Keep Alive", "The keep-awake session was stopped.", NotificationKind.Information),
             SessionEndReason.NativeError => new UserNotification(
                 "Keep Alive error",
                 e.Session.ErrorMessage ?? "Windows could not update the keep-awake request.",

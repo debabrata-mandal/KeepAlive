@@ -3,11 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
         Title="Keep Alive"
-        Width="480"
-        MinWidth="440"
-        MaxWidth="560"
-        SizeToContent="Height"
-        ResizeMode="CanMinimize"
+        Width="680"
+        Height="620"
+        MinWidth="600"
+        MinHeight="540"
         WindowStartupLocation="CenterScreen"
         Icon="Assets/keep-alive.png">
     <Window.Resources>
@@ -17,16 +16,12 @@
     <Grid Margin="28">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal">
-            <Image Width="44"
-                   Height="44"
-                   Margin="0,0,14,0"
-                   Source="Assets/keep-alive.png" />
+            <Image Width="44" Height="44" Margin="0,0,14,0" Source="Assets/keep-alive.png" />
             <StackPanel VerticalAlignment="Center">
                 <TextBlock FontSize="22" FontWeight="SemiBold" Text="Keep Alive" />
                 <TextBlock Margin="0,3,0,0"
@@ -35,110 +30,186 @@
             </StackPanel>
         </StackPanel>
 
-        <Border Grid.Row="1"
-                Margin="0,28,0,0"
-                Padding="24"
-                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="12"
-                TextElement.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                Visibility="{Binding IsInactive, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <StackPanel>
-                <StackPanel HorizontalAlignment="Center">
-                    <Ellipse Width="18"
-                             Height="18"
-                             Fill="{DynamicResource SystemFillColorNeutralBrush}" />
-                    <TextBlock Margin="0,10,0,0"
-                               HorizontalAlignment="Center"
-                               FontSize="20"
-                               FontWeight="SemiBold"
-                               Text="Inactive" />
-                    <TextBlock Margin="0,5,0,20"
-                               HorizontalAlignment="Center"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               Text="Choose how long Windows should stay awake." />
-                </StackPanel>
+        <TabControl Grid.Row="1" Margin="0,22,0,0" SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem Header="Session">
+                <Grid Margin="8,16,8,8">
+                    <Border Padding="24"
+                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            TextElement.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                            Visibility="{Binding IsInactive, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <StackPanel HorizontalAlignment="Center">
+                                <Ellipse Width="18" Height="18" Fill="{DynamicResource SystemFillColorNeutralBrush}" />
+                                <TextBlock Margin="0,10,0,0"
+                                           HorizontalAlignment="Center"
+                                           FontSize="20"
+                                           FontWeight="SemiBold"
+                                           Text="Inactive" />
+                                <TextBlock Margin="0,5,0,20"
+                                           HorizontalAlignment="Center"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                           Text="Choose how long Windows should stay awake." />
+                            </StackPanel>
 
-                <TextBlock Margin="0,0,0,6" FontWeight="SemiBold" Text="Duration" />
-                <ComboBox automation:AutomationProperties.Name="Session duration"
-                          ItemsSource="{Binding DurationOptions}"
-                          SelectedItem="{Binding SelectedDurationOption}"
-                          DisplayMemberPath="Label" />
+                            <TextBlock Margin="0,0,0,6" FontWeight="SemiBold" Text="Duration" />
+                            <ComboBox automation:AutomationProperties.Name="Session duration"
+                                      ItemsSource="{Binding DurationOptions}"
+                                      SelectedItem="{Binding SelectedDurationOption}"
+                                      DisplayMemberPath="Label" />
 
-                <StackPanel Margin="0,12,0,0"
-                            Visibility="{Binding IsCustomDuration, Converter={StaticResource BooleanToVisibilityConverter}}">
-                    <TextBlock Margin="0,0,0,6" FontWeight="SemiBold" Text="Custom duration" />
-                    <DockPanel LastChildFill="True">
-                        <TextBlock Margin="10,0,0,0"
-                                   VerticalAlignment="Center"
-                                   DockPanel.Dock="Right"
-                                   Text="minutes (1–480)" />
-                        <TextBox automation:AutomationProperties.Name="Custom duration in minutes"
-                                 MaxLength="3"
-                                 Text="{Binding CustomMinutesText, UpdateSourceTrigger=PropertyChanged}" />
-                    </DockPanel>
-                    <TextBlock Margin="0,5,0,0"
-                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                               Text="{Binding DurationValidationMessage}"
+                            <StackPanel Margin="0,12,0,0"
+                                        Visibility="{Binding IsCustomDuration, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Margin="0,0,0,6" FontWeight="SemiBold" Text="Custom duration" />
+                                <DockPanel LastChildFill="True">
+                                    <TextBlock Margin="10,0,0,0"
+                                               VerticalAlignment="Center"
+                                               DockPanel.Dock="Right"
+                                               Text="minutes (1–480)" />
+                                    <TextBox automation:AutomationProperties.Name="Custom duration in minutes"
+                                             MaxLength="3"
+                                             Text="{Binding CustomMinutesText, UpdateSourceTrigger=PropertyChanged}" />
+                                </DockPanel>
+                                <TextBlock Margin="0,5,0,0"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                           Text="{Binding DurationValidationMessage}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <Button Margin="0,20,0,0"
+                                    Padding="16,10"
+                                    automation:AutomationProperties.Name="Start keep-awake session"
+                                    Command="{Binding StartCommand}"
+                                    Content="Start session"
+                                    IsDefault="True" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Padding="24"
+                            Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="12"
+                            TextElement.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                            Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                            <Ellipse Width="18" Height="18" Fill="{DynamicResource SystemFillColorSuccessBrush}" />
+                            <TextBlock Margin="0,10,0,0"
+                                       HorizontalAlignment="Center"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Text="Active" />
+                            <TextBlock Margin="0,18,0,0"
+                                       HorizontalAlignment="Center"
+                                       FontFamily="Cascadia Mono, Consolas"
+                                       FontSize="36"
+                                       FontWeight="SemiBold"
+                                       Text="{Binding CountdownText}" />
+                            <TextBlock Margin="0,3,0,0"
+                                       HorizontalAlignment="Center"
+                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                       Text="remaining" />
+                            <TextBlock Margin="0,14,0,0" HorizontalAlignment="Center" Text="{Binding EndTimeText}" />
+                            <Button Margin="0,22,0,0"
+                                    Padding="16,10"
+                                    automation:AutomationProperties.Name="Stop keep-awake session"
+                                    Command="{Binding StopCommand}"
+                                    Content="Stop session" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Margin="20,0"
+                               VerticalAlignment="Bottom"
+                               Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                               Text="{Binding ErrorMessage}"
+                               TextAlignment="Center"
                                TextWrapping="Wrap" />
-                </StackPanel>
+                </Grid>
+            </TabItem>
 
-                <Button Margin="0,20,0,0"
-                        Padding="16,10"
-                        automation:AutomationProperties.Name="Start keep-awake session"
-                        Command="{Binding StartCommand}"
-                        Content="Start session"
-                        IsDefault="True" />
-            </StackPanel>
-        </Border>
+            <TabItem Header="History">
+                <Grid Margin="8,16,8,8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-        <Border Grid.Row="1"
-                Margin="0,28,0,0"
-                Padding="24"
-                Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="12"
-                TextElement.Foreground="{DynamicResource TextFillColorPrimaryBrush}"
-                Visibility="{Binding IsActive, Converter={StaticResource BooleanToVisibilityConverter}}">
-            <StackPanel HorizontalAlignment="Stretch">
-                <Ellipse Width="18" Height="18" Fill="{DynamicResource SystemFillColorSuccessBrush}" />
-                <TextBlock Margin="0,10,0,0"
-                           HorizontalAlignment="Center"
-                           FontSize="20"
-                           FontWeight="SemiBold"
-                           Text="Active" />
-                <TextBlock Margin="0,18,0,0"
-                           HorizontalAlignment="Center"
-                           FontFamily="Cascadia Mono, Consolas"
-                           FontSize="36"
-                           FontWeight="SemiBold"
-                           Text="{Binding CountdownText}" />
-                <TextBlock Margin="0,3,0,0"
-                           HorizontalAlignment="Center"
-                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                           Text="remaining" />
-                <TextBlock Margin="0,14,0,0"
-                           HorizontalAlignment="Center"
-                           Text="{Binding EndTimeText}" />
-                <Button Margin="0,22,0,0"
-                        Padding="16,10"
-                        automation:AutomationProperties.Name="Stop keep-awake session"
-                        Command="{Binding StopCommand}"
-                        Content="Stop session" />
-            </StackPanel>
-        </Border>
+                    <TextBlock FontWeight="SemiBold" Text="{Binding History.SummaryText}" />
+                    <DataGrid Grid.Row="1"
+                              Margin="0,12,0,0"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              CanUserDeleteRows="False"
+                              IsReadOnly="True"
+                              ItemsSource="{Binding History.Sessions}">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Width="*" Binding="{Binding StartText}" Header="Started" />
+                            <DataGridTextColumn Width="*" Binding="{Binding EndText}" Header="Ended" />
+                            <DataGridTextColumn Width="Auto" Binding="{Binding DurationText}" Header="Duration" />
+                            <DataGridTextColumn Width="Auto" Binding="{Binding OutcomeText}" Header="Outcome" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <TextBlock Grid.Row="2"
+                               Margin="0,10,0,0"
+                               Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                               Text="{Binding History.ErrorMessage}"
+                               TextWrapping="Wrap" />
+                    <Button Grid.Row="3"
+                            Margin="0,12,0,0"
+                            Padding="14,8"
+                            HorizontalAlignment="Right"
+                            Click="OnClearHistoryClicked"
+                            Content="Clear history"
+                            IsEnabled="{Binding History.CanClear}" />
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Settings">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8,16,8,8">
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Startup" />
+                        <CheckBox Margin="0,14,0,0"
+                                  Content="Start Keep Alive when I sign in"
+                                  IsChecked="{Binding Settings.StartWithWindows}" />
+                        <CheckBox Margin="0,12,0,0"
+                                  Content="Start minimized in the system tray"
+                                  IsChecked="{Binding Settings.StartMinimized}" />
+                        <TextBlock Margin="24,5,0,0"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Text="Starting with Windows launches the app only; it never begins a session automatically."
+                                   TextWrapping="Wrap" />
+
+                        <Separator Margin="0,20,0,20" />
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Session defaults" />
+                        <TextBlock Margin="0,14,0,6" Text="Default duration" />
+                        <ComboBox ItemsSource="{Binding Settings.DefaultDurationOptions}"
+                                  SelectedItem="{Binding Settings.SelectedDefaultDuration}"
+                                  DisplayMemberPath="Label" />
+
+                        <Separator Margin="0,20,0,20" />
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Notifications" />
+                        <CheckBox Margin="0,14,0,0"
+                                  Content="Notify me 5 minutes before a session ends"
+                                  IsChecked="{Binding Settings.NotifyBeforeEnd}" />
+                        <CheckBox Margin="0,12,0,0"
+                                  Content="Notify me when a session stops"
+                                  IsChecked="{Binding Settings.NotifyOnStop}" />
+
+                        <TextBlock Margin="0,18,0,0"
+                                   Foreground="{DynamicResource SystemFillColorCriticalBrush}"
+                                   Text="{Binding Settings.ErrorMessage}"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
 
         <TextBlock Grid.Row="2"
-                   Margin="0,12,0,0"
-                   Foreground="{DynamicResource SystemFillColorCriticalBrush}"
-                   Text="{Binding ErrorMessage}"
-                   TextAlignment="Center"
-                   TextWrapping="Wrap" />
-
-        <TextBlock Grid.Row="3"
-                   Margin="0,18,0,0"
+                   Margin="0,14,0,0"
                    HorizontalAlignment="Center"
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    Text="Closing this window keeps the app available in the system tray." />

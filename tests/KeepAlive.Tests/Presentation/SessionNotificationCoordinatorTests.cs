@@ -11,7 +11,7 @@ public sealed class SessionNotificationCoordinatorTests
     {
         FakeSessionController controller = new();
         FakeUserNotificationService notifications = new();
-        using SessionNotificationCoordinator coordinator = new(controller, notifications);
+        using SessionNotificationCoordinator coordinator = new(controller, notifications, () => true, () => true);
         SessionRecord session = CreateSession(TimeSpan.FromMinutes(15));
 
         controller.SetSnapshot(new SessionSnapshot(SessionStatus.Active, session, TimeSpan.FromMinutes(6)));
@@ -27,7 +27,7 @@ public sealed class SessionNotificationCoordinatorTests
     {
         FakeSessionController controller = new();
         FakeUserNotificationService notifications = new();
-        using SessionNotificationCoordinator coordinator = new(controller, notifications);
+        using SessionNotificationCoordinator coordinator = new(controller, notifications, () => true, () => true);
         SessionRecord session = CreateSession(TimeSpan.FromMinutes(3));
 
         controller.SetSnapshot(new SessionSnapshot(SessionStatus.Active, session, TimeSpan.FromMinutes(3)));
@@ -44,7 +44,7 @@ public sealed class SessionNotificationCoordinatorTests
     {
         FakeSessionController controller = new();
         FakeUserNotificationService notifications = new();
-        using SessionNotificationCoordinator coordinator = new(controller, notifications);
+        using SessionNotificationCoordinator coordinator = new(controller, notifications, () => true, () => true);
         SessionRecord session = CreateSession(TimeSpan.FromHours(1)) with { EndReason = reason, ErrorMessage = "Failure" };
 
         controller.Complete(session);
@@ -58,8 +58,35 @@ public sealed class SessionNotificationCoordinatorTests
     {
         FakeSessionController controller = new();
         FakeUserNotificationService notifications = new();
-        using SessionNotificationCoordinator coordinator = new(controller, notifications);
+        using SessionNotificationCoordinator coordinator = new(controller, notifications, () => true, () => true);
         SessionRecord session = CreateSession(TimeSpan.FromHours(1)) with { EndReason = SessionEndReason.ApplicationExit };
+
+        controller.Complete(session);
+
+        Assert.Empty(notifications.Notifications);
+    }
+
+    [Fact]
+    public void RespectsDisabledWarningSetting()
+    {
+        FakeSessionController controller = new();
+        FakeUserNotificationService notifications = new();
+        using SessionNotificationCoordinator coordinator = new(controller, notifications, () => false, () => true);
+        SessionRecord session = CreateSession(TimeSpan.FromMinutes(15));
+
+        controller.SetSnapshot(new SessionSnapshot(SessionStatus.Active, session, TimeSpan.FromMinutes(6)));
+        controller.SetSnapshot(new SessionSnapshot(SessionStatus.Active, session, TimeSpan.FromMinutes(5)));
+
+        Assert.Empty(notifications.Notifications);
+    }
+
+    [Fact]
+    public void RespectsDisabledStopSetting()
+    {
+        FakeSessionController controller = new();
+        FakeUserNotificationService notifications = new();
+        using SessionNotificationCoordinator coordinator = new(controller, notifications, () => true, () => false);
+        SessionRecord session = CreateSession(TimeSpan.FromHours(1)) with { EndReason = SessionEndReason.StoppedManually };
 
         controller.Complete(session);
 

@@ -1,4 +1,5 @@
 using KeepAlive.Core.Models;
+using KeepAlive.History.Services;
 using KeepAlive.Presentation.ViewModels;
 using KeepAlive.Tests.TestDoubles;
 
@@ -10,7 +11,7 @@ public sealed class MainWindowViewModelTests
     public void DefaultsToTwoHourSession()
     {
         FakeSessionController controller = new();
-        using MainWindowViewModel viewModel = new(controller);
+        using MainWindowViewModel viewModel = CreateViewModel(controller);
 
         Assert.Equal(TimeSpan.FromHours(2), viewModel.SelectedDuration);
         Assert.True(viewModel.StartCommand.CanExecute(null));
@@ -20,7 +21,7 @@ public sealed class MainWindowViewModelTests
     public void StartCommandUsesSelectedDuration()
     {
         FakeSessionController controller = new();
-        using MainWindowViewModel viewModel = new(controller);
+        using MainWindowViewModel viewModel = CreateViewModel(controller);
         viewModel.SelectedDurationOption = viewModel.DurationOptions.Single(option => option.Duration == TimeSpan.FromMinutes(30));
 
         viewModel.StartCommand.Execute(null);
@@ -32,7 +33,7 @@ public sealed class MainWindowViewModelTests
     public void CustomDurationMustBeBetweenOneAndFourHundredEightyMinutes()
     {
         FakeSessionController controller = new();
-        using MainWindowViewModel viewModel = new(controller);
+        using MainWindowViewModel viewModel = CreateViewModel(controller);
         viewModel.SelectedDurationOption = viewModel.DurationOptions.Single(option => option.IsCustom);
 
         viewModel.CustomMinutesText = "0";
@@ -49,7 +50,7 @@ public sealed class MainWindowViewModelTests
     public void ActiveSnapshotUpdatesCountdownAndCommands()
     {
         FakeSessionController controller = new();
-        using MainWindowViewModel viewModel = new(controller);
+        using MainWindowViewModel viewModel = CreateViewModel(controller);
         SessionRecord session = CreateSession(TimeSpan.FromHours(2));
 
         controller.SetSnapshot(new SessionSnapshot(SessionStatus.Active, session, TimeSpan.FromMinutes(83)));
@@ -66,7 +67,7 @@ public sealed class MainWindowViewModelTests
     public void StopCommandDelegatesToController()
     {
         FakeSessionController controller = new();
-        using MainWindowViewModel viewModel = new(controller);
+        using MainWindowViewModel viewModel = CreateViewModel(controller);
         SessionRecord session = CreateSession(TimeSpan.FromHours(1));
         controller.SetSnapshot(new SessionSnapshot(SessionStatus.Active, session, TimeSpan.FromHours(1)));
 
@@ -79,5 +80,15 @@ public sealed class MainWindowViewModelTests
     {
         DateTimeOffset start = new(2026, 9, 16, 12, 0, 0, TimeSpan.Zero);
         return new SessionRecord(Guid.NewGuid(), start, start.Add(duration), null, duration, null, null);
+    }
+
+    private static MainWindowViewModel CreateViewModel(FakeSessionController controller)
+    {
+        FakeSettingsStore settingsStore = new();
+        SettingsViewModel settings = new(settingsStore, new FakeStartupRegistrationService());
+        FakeClock clock = new(new DateTimeOffset(2026, 9, 16, 12, 0, 0, TimeSpan.Zero));
+        SessionHistoryCoordinator coordinator = new(new FakeSessionHistoryStore(), controller, clock);
+        HistoryViewModel history = new(coordinator);
+        return new MainWindowViewModel(controller, settings, history);
     }
 }

@@ -18,11 +18,19 @@ public sealed class TrayIconService : IUserNotificationService, IDisposable
     private readonly Forms.ToolStripMenuItem _stopItem;
     private readonly Forms.NotifyIcon _trayIcon;
 
-    public TrayIconService(ISessionController sessionController, Func<TimeSpan?> selectedDuration, Action showMainWindow, Action exitApplication)
+    public TrayIconService(
+        ISessionController sessionController,
+        Func<TimeSpan?> selectedDuration,
+        Action showMainWindow,
+        Action showHistory,
+        Action showSettings,
+        Action exitApplication)
     {
         _sessionController = sessionController ?? throw new ArgumentNullException(nameof(sessionController));
         _selectedDuration = selectedDuration ?? throw new ArgumentNullException(nameof(selectedDuration));
         _showMainWindow = showMainWindow ?? throw new ArgumentNullException(nameof(showMainWindow));
+        ArgumentNullException.ThrowIfNull(showHistory);
+        ArgumentNullException.ThrowIfNull(showSettings);
         ArgumentNullException.ThrowIfNull(exitApplication);
 
         _activeIcon = LoadIcon("keep-alive-active.ico");
@@ -31,8 +39,8 @@ public sealed class TrayIconService : IUserNotificationService, IDisposable
         Forms.ToolStripMenuItem openItem = new("Open", null, (_, _) => _showMainWindow());
         _startItem = new Forms.ToolStripMenuItem("Start session", null, (_, _) => StartSession());
         _stopItem = new Forms.ToolStripMenuItem("Stop session", null, (_, _) => StopSession());
-        Forms.ToolStripMenuItem historyItem = new("History") { Enabled = false, ToolTipText = "Available in Phase 4" };
-        Forms.ToolStripMenuItem settingsItem = new("Settings") { Enabled = false, ToolTipText = "Available in Phase 4" };
+        Forms.ToolStripMenuItem historyItem = new("History", null, (_, _) => showHistory());
+        Forms.ToolStripMenuItem settingsItem = new("Settings", null, (_, _) => showSettings());
         Forms.ToolStripMenuItem exitItem = new("Exit", null, (_, _) => exitApplication());
 
         Forms.ContextMenuStrip contextMenu = new();
