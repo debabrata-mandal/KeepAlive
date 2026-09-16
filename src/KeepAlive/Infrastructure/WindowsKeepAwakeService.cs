@@ -17,7 +17,7 @@ public sealed class WindowsKeepAwakeService : IKeepAwakeService
             return;
         }
 
-        var result = SetThreadExecutionState(ExecutionState.Continuous | ExecutionState.SystemRequired);
+        ExecutionState result = SetThreadExecutionState(ExecutionState.Continuous | ExecutionState.SystemRequired);
 
         if (result == 0)
         {
@@ -40,7 +40,7 @@ public sealed class WindowsKeepAwakeService : IKeepAwakeService
             throw new KeepAwakeException("The keep-awake request must be cleared on the thread that created it.");
         }
 
-        var result = SetThreadExecutionState(ExecutionState.Continuous);
+        ExecutionState result = SetThreadExecutionState(ExecutionState.Continuous);
         if (result == 0)
         {
             throw CreateNativeException("Windows did not clear the keep-awake request.");
@@ -52,7 +52,7 @@ public sealed class WindowsKeepAwakeService : IKeepAwakeService
 
     private static KeepAwakeException CreateNativeException(string message)
     {
-        var errorCode = Marshal.GetLastWin32Error();
+        int errorCode = Marshal.GetLastWin32Error();
         return errorCode == 0
             ? new KeepAwakeException(message)
             : new KeepAwakeException(message, new Win32Exception(errorCode));

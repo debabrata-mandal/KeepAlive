@@ -9,7 +9,7 @@ public sealed class SessionDurationPolicyTests
     [InlineData(481)]
     public void ValidateRejectsDurationsOutsideAllowedRange(int totalMinutes)
     {
-        var duration = TimeSpan.FromMinutes(totalMinutes);
+        TimeSpan duration = TimeSpan.FromMinutes(totalMinutes);
 
         Assert.Throws<ArgumentOutOfRangeException>(() => SessionDurationPolicy.Validate(duration));
     }

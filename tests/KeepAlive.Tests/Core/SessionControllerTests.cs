@@ -8,7 +8,7 @@ public sealed class SessionControllerTests
     [Fact]
     public void StartActivatesKeepAwakeAndCreatesDeadline()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
 
         fixture.Controller.Start(TimeSpan.FromHours(2));
 
@@ -22,7 +22,7 @@ public sealed class SessionControllerTests
     [Fact]
     public void StartRejectsSecondActiveSession()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
         fixture.Controller.Start(TimeSpan.FromMinutes(30));
 
         Assert.Throws<InvalidOperationException>(() => fixture.Controller.Start(TimeSpan.FromHours(1)));
@@ -32,7 +32,7 @@ public sealed class SessionControllerTests
     [Fact]
     public void TimerTickCalculatesRemainingTimeFromUtcDeadline()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
         fixture.Controller.Start(TimeSpan.FromHours(2));
 
         fixture.Clock.Advance(TimeSpan.FromMinutes(37));
@@ -44,7 +44,7 @@ public sealed class SessionControllerTests
     [Fact]
     public void TimerExpiresSessionAtDeadline()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
         SessionRecord? completed = null;
         fixture.Controller.SessionCompleted += (_, e) => completed = e.Session;
         fixture.Controller.Start(TimeSpan.FromMinutes(15));
@@ -62,11 +62,11 @@ public sealed class SessionControllerTests
     [Fact]
     public void StopCompletesSessionManually()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
         fixture.Controller.Start(TimeSpan.FromHours(1));
         fixture.Clock.Advance(TimeSpan.FromMinutes(10));
 
-        var completed = fixture.Controller.Stop();
+        SessionRecord? completed = fixture.Controller.Stop();
 
         Assert.NotNull(completed);
         Assert.Equal(SessionEndReason.StoppedManually, completed.EndReason);
@@ -78,9 +78,9 @@ public sealed class SessionControllerTests
     [Fact]
     public void StopWhenInactiveDoesNothing()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
 
-        var completed = fixture.Controller.Stop();
+        SessionRecord? completed = fixture.Controller.Stop();
 
         Assert.Null(completed);
         Assert.Equal(0, fixture.KeepAwake.StopCalls);
@@ -89,7 +89,7 @@ public sealed class SessionControllerTests
     [Fact]
     public void ResumeBeforeDeadlineKeepsSessionActive()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
         fixture.Controller.Start(TimeSpan.FromHours(1));
         fixture.Clock.Advance(TimeSpan.FromMinutes(20));
 
@@ -103,7 +103,7 @@ public sealed class SessionControllerTests
     [Fact]
     public void ResumeAfterDeadlineExpiresSession()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
         SessionRecord? completed = null;
         fixture.Controller.SessionCompleted += (_, e) => completed = e.Session;
         fixture.Controller.Start(TimeSpan.FromMinutes(30));
@@ -119,12 +119,12 @@ public sealed class SessionControllerTests
     [Fact]
     public void NativeStartFailureLeavesControllerInactiveAndRecordsError()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
         SessionRecord? completed = null;
         fixture.KeepAwake.ThrowOnStart = true;
         fixture.Controller.SessionCompleted += (_, e) => completed = e.Session;
 
-        var exception = Assert.Throws<KeepAwakeException>(() => fixture.Controller.Start(TimeSpan.FromHours(1)));
+        KeepAwakeException exception = Assert.Throws<KeepAwakeException>(() => fixture.Controller.Start(TimeSpan.FromHours(1)));
 
         Assert.Equal("Start failed.", exception.Message);
         Assert.Equal(SessionStatus.Inactive, fixture.Controller.Snapshot.Status);
@@ -136,13 +136,13 @@ public sealed class SessionControllerTests
     [Fact]
     public void NativeStopFailureStillTransitionsControllerToInactive()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
         SessionRecord? completed = null;
         fixture.Controller.SessionCompleted += (_, e) => completed = e.Session;
         fixture.Controller.Start(TimeSpan.FromHours(1));
         fixture.KeepAwake.ThrowOnStop = true;
 
-        var exception = Assert.Throws<KeepAwakeException>(() => fixture.Controller.Stop());
+        KeepAwakeException exception = Assert.Throws<KeepAwakeException>(() => fixture.Controller.Stop());
 
         Assert.Equal("Stop failed.", exception.Message);
         Assert.Equal(SessionStatus.Inactive, fixture.Controller.Snapshot.Status);
@@ -154,7 +154,7 @@ public sealed class SessionControllerTests
     [Fact]
     public void ShutdownUsesApplicationExitReason()
     {
-        using var fixture = new SessionFixture();
+        using SessionFixture fixture = new();
         SessionRecord? completed = null;
         fixture.Controller.SessionCompleted += (_, e) => completed = e.Session;
         fixture.Controller.Start(TimeSpan.FromHours(1));

@@ -7,10 +7,10 @@ public sealed class SingleInstanceCoordinatorTests
     [Fact]
     public void FirstCoordinatorOwnsMutexAndSecondDoesNot()
     {
-        var applicationId = $"KeepAlive.Tests.{Guid.NewGuid():N}";
+        string applicationId = $"KeepAlive.Tests.{Guid.NewGuid():N}";
 
-        using var primary = new SingleInstanceCoordinator(applicationId);
-        using var secondary = new SingleInstanceCoordinator(applicationId);
+        using SingleInstanceCoordinator primary = new(applicationId);
+        using SingleInstanceCoordinator secondary = new(applicationId);
 
         Assert.True(primary.IsPrimaryInstance);
         Assert.False(secondary.IsPrimaryInstance);
@@ -19,16 +19,16 @@ public sealed class SingleInstanceCoordinatorTests
     [Fact]
     public async Task SecondaryNotificationRaisesActivationRequest()
     {
-        var applicationId = $"KeepAlive.Tests.{Guid.NewGuid():N}";
-        var activationReceived = new TaskCompletionSource(
+        string applicationId = $"KeepAlive.Tests.{Guid.NewGuid():N}";
+        TaskCompletionSource activationReceived = new(
             TaskCreationOptions.RunContinuationsAsynchronously);
 
-        using var primary = new SingleInstanceCoordinator(applicationId);
+        using SingleInstanceCoordinator primary = new(applicationId);
         primary.ActivationRequested += (_, _) => activationReceived.TrySetResult();
         primary.StartListening();
 
-        using var secondary = new SingleInstanceCoordinator(applicationId);
-        var notified = await secondary.NotifyPrimaryAsync();
+        using SingleInstanceCoordinator secondary = new(applicationId);
+        bool notified = await secondary.NotifyPrimaryAsync();
 
         Assert.True(notified);
         await activationReceived.Task.WaitAsync(TimeSpan.FromSeconds(3));

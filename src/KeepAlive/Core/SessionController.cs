@@ -39,8 +39,8 @@ public sealed class SessionController : ISessionController, IDisposable
             throw new InvalidOperationException("A keep-awake session is already active.");
         }
 
-        var startedAtUtc = _clock.UtcNow;
-        var pendingSession = new SessionRecord(
+        DateTimeOffset startedAtUtc = _clock.UtcNow;
+        SessionRecord pendingSession = new(
             Guid.NewGuid(),
             startedAtUtc,
             startedAtUtc.Add(duration),
@@ -55,7 +55,7 @@ public sealed class SessionController : ISessionController, IDisposable
         }
         catch (KeepAwakeException exception)
         {
-            var failedSession = pendingSession with
+            SessionRecord failedSession = pendingSession with
             {
                 EndedAtUtc = _clock.UtcNow,
                 EndReason = SessionEndReason.NativeError,
@@ -136,7 +136,7 @@ public sealed class SessionController : ISessionController, IDisposable
             stopFailure = exception;
         }
 
-        var completedSession = _activeSession with
+        SessionRecord completedSession = _activeSession with
         {
             EndedAtUtc = _clock.UtcNow,
             EndReason = stopFailure is null ? reason : SessionEndReason.NativeError,
@@ -177,7 +177,7 @@ public sealed class SessionController : ISessionController, IDisposable
             return;
         }
 
-        var remaining = _activeSession.PlannedEndUtc - _clock.UtcNow;
+        TimeSpan remaining = _activeSession.PlannedEndUtc - _clock.UtcNow;
         if (remaining <= TimeSpan.Zero)
         {
             CompleteSession(SessionEndReason.TimerExpired);

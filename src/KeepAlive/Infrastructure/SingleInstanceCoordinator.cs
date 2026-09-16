@@ -19,14 +19,14 @@ public sealed class SingleInstanceCoordinator : IDisposable
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(applicationId);
 
-        var safeId = string.Concat(applicationId.Select(character =>
+        string safeId = string.Concat(applicationId.Select(character =>
             char.IsAsciiLetterOrDigit(character) ? character : '_'));
 
         _pipeName = $"{safeId}.Activation.v1";
         _mutex = new Mutex(
             initiallyOwned: true,
             name: $@"Local\{safeId}.SingleInstance.v1",
-            createdNew: out var createdNew);
+            createdNew: out bool createdNew);
         IsPrimaryInstance = createdNew;
     }
 
@@ -55,19 +55,19 @@ public sealed class SingleInstanceCoordinator : IDisposable
             return false;
         }
 
-        for (var attempt = 0; attempt < NotificationAttempts; attempt++)
+        for (int attempt = 0; attempt < NotificationAttempts; attempt++)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                await using var client = new NamedPipeClientStream(
+                await using NamedPipeClientStream client = new(
                     serverName: ".",
                     pipeName: _pipeName,
                     direction: PipeDirection.Out,
                     options: PipeOptions.Asynchronous);
 
-                using var connectionTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                using CancellationTokenSource connectionTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 connectionTimeout.CancelAfter(ConnectionTimeout);
 
                 await client.ConnectAsync(connectionTimeout.Token);
@@ -122,7 +122,7 @@ public sealed class SingleInstanceCoordinator : IDisposable
         {
             try
             {
-                await using var server = new NamedPipeServerStream(
+                await using NamedPipeServerStream server = new(
                     pipeName: _pipeName,
                     direction: PipeDirection.In,
                     maxNumberOfServerInstances: 1,
@@ -131,8 +131,8 @@ public sealed class SingleInstanceCoordinator : IDisposable
 
                 await server.WaitForConnectionAsync(cancellationToken);
 
-                var command = new byte[1];
-                var bytesRead = await server.ReadAsync(command, cancellationToken);
+                byte[] command = new byte[1];
+                int bytesRead = await server.ReadAsync(command, cancellationToken);
                 if (bytesRead == 1 && command[0] == 1)
                 {
                     ActivationRequested?.Invoke(this, EventArgs.Empty);
