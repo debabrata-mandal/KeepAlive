@@ -11,6 +11,10 @@
     <ApplicationIcon>Assets\keep-alive.ico</ApplicationIcon>
     <AssemblyName>KeepAlive</AssemblyName>
     <RootNamespace>KeepAlive</RootNamespace>
+    <Product>Keep Alive</Product>
+    <Description>Timed Windows keep-awake sessions with local history and user-controlled settings.</Description>
+    <Authors>Keep Alive contributors</Authors>
+    <Version>0.1.0</Version>
     <LangVersion>14.0</LangVersion>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
