@@ -52,17 +52,16 @@ From PowerShell, run:
 
 The script creates a self-contained `win-x64` ZIP and SHA-256 checksum under `artifacts/releases`. The target computer does not need a separate .NET installation.
 
-After a successful build and test on `main`, GitHub Actions publishes both files as an OCI artifact at `ghcr.io/debabrata-mandal/keepalive:<version>`. The workflow authenticates with its repository-scoped `GITHUB_TOKEN`; it does not require a separate registry secret.
+Pushes to `main` and pull requests run the build and test workflow with an automatic CI version such as `0.1.0-ci.27`. CI builds are validation builds and are not published for end users.
 
-The base version comes from `KeepAlive.csproj`. Every push to `main` automatically appends the GitHub Actions run number. For example, base version `0.1.0` and run number `27` produce `0.1.0-ci.27`. The same version is applied to the executable metadata, ZIP name, checksum, and GHCR tag.
-
-Download a published package with ORAS:
+Pushing a semantic-version tag creates a GitHub Release with generated release notes and attaches the portable ZIP and checksum:
 
 ```powershell
-oras pull ghcr.io/debabrata-mandal/keepalive:<version>
+git tag -a v0.1.0 -m "Release 0.1.0"
+git push origin v0.1.0
 ```
 
-New GHCR packages are private by default. Package visibility can be changed from the repository owner’s GitHub Packages settings.
+Stable tags such as `v1.2.3` are marked as the latest release. Tags such as `v1.2.3-rc.1` are marked as prereleases. Published files can be downloaded directly from the repository’s Releases page.
 
 ## Install and remove
 
@@ -79,4 +78,5 @@ The portable executable is currently unsigned. Windows or organizational securit
 - `src/KeepAlive` — WPF desktop application
 - `tests/KeepAlive.Tests` — automated tests
 - `.github/workflows/ci.yml` — Windows build and test workflow
+- `.github/workflows/release.yml` — tag-driven GitHub Release workflow
 - `build/Publish.ps1` — portable Windows packaging script
