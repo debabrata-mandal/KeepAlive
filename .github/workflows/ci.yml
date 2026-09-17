@@ -92,3 +92,22 @@ jobs:
             --title "Keep Alive $version"
 
           if ($LASTEXITCODE -ne 0) { throw 'GitHub release creation failed.' }
+
+      - name: Remove older releases
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "v${{ needs.build_and_test.outputs.release_version }}"
+          $releases = gh release list --limit 1000 --json tagName | ConvertFrom-Json
+
+          foreach ($release in $releases) {
+              if ($release.tagName -eq $tag) {
+                  continue
+              }
+
+              Write-Output "Deleting older release $($release.tagName)"
+              gh release delete $release.tagName --yes
+
+              if ($LASTEXITCODE -ne 0) { throw "Failed to delete release $($release.tagName)." }
+          }
