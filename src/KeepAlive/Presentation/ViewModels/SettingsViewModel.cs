@@ -16,6 +16,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
     private bool _notifyBeforeEnd;
     private bool _notifyOnStop;
     private DurationOption _selectedDefaultDuration;
+    private bool _simulateInputActivity;
     private bool _startMinimized;
     private bool _startWithWindows;
 
@@ -37,6 +38,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         _startMinimized = settings.StartMinimized;
         _notifyBeforeEnd = settings.NotifyBeforeEnd;
         _notifyOnStop = settings.NotifyOnStop;
+        _simulateInputActivity = settings.SimulateInputActivity;
         _selectedDefaultDuration = DefaultDurationOptions.FirstOrDefault(option => option.Duration?.TotalMinutes == settings.DefaultDurationMinutes)
             ?? DefaultDurationOptions.Single(option => option.Duration == TimeSpan.FromHours(2));
         ReconcileStartupRegistration();
@@ -91,6 +93,12 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         set => SetAndSave(ref _notifyOnStop, value);
     }
 
+    public bool SimulateInputActivity
+    {
+        get => _simulateInputActivity;
+        set => SetAndSave(ref _simulateInputActivity, value);
+    }
+
     public DurationOption SelectedDefaultDuration
     {
         get => _selectedDefaultDuration;
@@ -116,6 +124,7 @@ public sealed class SettingsViewModel : INotifyPropertyChanged
         StartMinimized = StartMinimized,
         NotifyBeforeEnd = NotifyBeforeEnd,
         NotifyOnStop = NotifyOnStop,
+        SimulateInputActivity = SimulateInputActivity,
     };
 
     private AppSettings LoadSettings()

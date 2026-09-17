@@ -191,6 +191,16 @@
                                   DisplayMemberPath="Label" />
 
                         <Separator Margin="0,20,0,20" />
+                        <TextBlock FontSize="18" FontWeight="SemiBold" Text="Activity" />
+                        <CheckBox Margin="0,14,0,0"
+                                  Content="Simulate mouse activity during a session"
+                                  IsChecked="{Binding Settings.SimulateInputActivity}" />
+                        <TextBlock Margin="24,5,0,0"
+                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                   Text="In addition to preventing sleep, periodically sends a tiny, invisible mouse signal so the system also registers as recently active — for example, in screen-lock and presence-based status timers. Enable only if that matches your organization's policies."
+                                   TextWrapping="Wrap" />
+
+                        <Separator Margin="0,20,0,20" />
                         <TextBlock FontSize="18" FontWeight="SemiBold" Text="Notifications" />
                         <CheckBox Margin="0,14,0,0"
                                   Content="Notify me 5 minutes before a session ends"

@@ -11,6 +11,7 @@ public sealed class TrayIconService : IUserNotificationService, IDisposable
 {
     private readonly ISessionController _sessionController;
     private readonly Func<TimeSpan?> _selectedDuration;
+    private readonly Func<bool> _simulateInputActivity;
     private readonly Action _showMainWindow;
     private readonly Icon _activeIcon;
     private readonly Icon _inactiveIcon;
@@ -21,6 +22,7 @@ public sealed class TrayIconService : IUserNotificationService, IDisposable
     public TrayIconService(
         ISessionController sessionController,
         Func<TimeSpan?> selectedDuration,
+        Func<bool> simulateInputActivity,
         Action showMainWindow,
         Action showHistory,
         Action showSettings,
@@ -28,6 +30,7 @@ public sealed class TrayIconService : IUserNotificationService, IDisposable
     {
         _sessionController = sessionController ?? throw new ArgumentNullException(nameof(sessionController));
         _selectedDuration = selectedDuration ?? throw new ArgumentNullException(nameof(selectedDuration));
+        _simulateInputActivity = simulateInputActivity ?? throw new ArgumentNullException(nameof(simulateInputActivity));
         _showMainWindow = showMainWindow ?? throw new ArgumentNullException(nameof(showMainWindow));
         ArgumentNullException.ThrowIfNull(showHistory);
         ArgumentNullException.ThrowIfNull(showSettings);
@@ -103,7 +106,7 @@ public sealed class TrayIconService : IUserNotificationService, IDisposable
 
         try
         {
-            _sessionController.Start(duration);
+            _sessionController.Start(duration, _simulateInputActivity());
         }
         catch (Exception exception) when (exception is KeepAwakeException or InvalidOperationException or ArgumentOutOfRangeException)
         {

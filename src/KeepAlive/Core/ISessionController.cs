@@ -11,7 +11,7 @@ public interface ISessionController
 
     SessionSnapshot Snapshot { get; }
 
-    void Start(TimeSpan duration);
+    void Start(TimeSpan duration, bool simulateInputActivity);
 
     SessionRecord? Stop();
 

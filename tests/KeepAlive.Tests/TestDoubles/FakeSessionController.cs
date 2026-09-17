@@ -14,9 +14,15 @@ internal sealed class FakeSessionController : ISessionController
 
     public TimeSpan? StartedDuration { get; private set; }
 
+    public bool? StartedSimulateInputActivity { get; private set; }
+
     public int StopCalls { get; private set; }
 
-    public void Start(TimeSpan duration) => StartedDuration = duration;
+    public void Start(TimeSpan duration, bool simulateInputActivity)
+    {
+        StartedDuration = duration;
+        StartedSimulateInputActivity = simulateInputActivity;
+    }
 
     public SessionRecord? Stop()
     {

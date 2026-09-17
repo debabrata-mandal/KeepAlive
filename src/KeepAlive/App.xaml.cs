@@ -41,7 +41,11 @@ public partial class App : Application
         JsonSettingsStore settingsStore = new(AppDataPaths.SettingsFile);
         WindowsStartupRegistrationService startupRegistration = new();
         SettingsViewModel settingsViewModel = new(settingsStore, startupRegistration);
-        _sessionController = new SessionController(new WindowsKeepAwakeService(), clock, new DispatcherSessionTimer(Dispatcher));
+        _sessionController = new SessionController(
+            new WindowsKeepAwakeService(),
+            clock,
+            new DispatcherSessionTimer(Dispatcher),
+            new WindowsActivityInputSimulator());
         JsonSessionHistoryStore historyStore = new(AppDataPaths.HistoryFile, clock);
         _historyCoordinator = new SessionHistoryCoordinator(historyStore, _sessionController, clock);
         HistoryViewModel historyViewModel = new(_historyCoordinator);
@@ -51,6 +55,7 @@ public partial class App : Application
         _trayIconService = new TrayIconService(
             _sessionController,
             () => _mainWindowViewModel.SelectedDuration,
+            () => settingsViewModel.SimulateInputActivity,
             ShowMainWindow,
             ShowHistory,
             ShowSettings,

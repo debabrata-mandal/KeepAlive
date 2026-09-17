@@ -5,6 +5,7 @@ namespace KeepAlive.Core;
 
 public sealed class SessionController : ISessionController, IDisposable
 {
+    private readonly IActivityInputSimulator _activityInputSimulator;
     private readonly IClock _clock;
     private readonly IKeepAwakeService _keepAwakeService;
     private readonly int _owningThreadId;
@@ -14,11 +15,16 @@ public sealed class SessionController : ISessionController, IDisposable
     private bool _disposed;
     private SessionSnapshot _snapshot = SessionSnapshot.Inactive;
 
-    public SessionController(IKeepAwakeService keepAwakeService, IClock clock, ISessionTimer timer)
+    public SessionController(
+        IKeepAwakeService keepAwakeService,
+        IClock clock,
+        ISessionTimer timer,
+        IActivityInputSimulator activityInputSimulator)
     {
         _keepAwakeService = keepAwakeService ?? throw new ArgumentNullException(nameof(keepAwakeService));
         _clock = clock ?? throw new ArgumentNullException(nameof(clock));
         _timer = timer ?? throw new ArgumentNullException(nameof(timer));
+        _activityInputSimulator = activityInputSimulator ?? throw new ArgumentNullException(nameof(activityInputSimulator));
         _owningThreadId = Environment.CurrentManagedThreadId;
         _timer.Tick += OnTimerTick;
     }
@@ -29,7 +35,7 @@ public sealed class SessionController : ISessionController, IDisposable
 
     public SessionSnapshot Snapshot => _snapshot;
 
-    public void Start(TimeSpan duration)
+    public void Start(TimeSpan duration, bool simulateInputActivity)
     {
         VerifyReady();
         SessionDurationPolicy.Validate(duration);
@@ -65,6 +71,11 @@ public sealed class SessionController : ISessionController, IDisposable
             RaiseStateChanged();
             SessionCompleted?.Invoke(this, new SessionCompletedEventArgs(failedSession));
             throw;
+        }
+
+        if (simulateInputActivity)
+        {
+            _activityInputSimulator.Start();
         }
 
         _activeSession = pendingSession;
@@ -114,6 +125,7 @@ public sealed class SessionController : ISessionController, IDisposable
 
         _timer.Tick -= OnTimerTick;
         _timer.Dispose();
+        (_activityInputSimulator as IDisposable)?.Dispose();
         _disposed = true;
     }
 
@@ -125,6 +137,7 @@ public sealed class SessionController : ISessionController, IDisposable
         }
 
         _timer.Stop();
+        _activityInputSimulator.Stop();
 
         KeepAwakeException? stopFailure = null;
         try

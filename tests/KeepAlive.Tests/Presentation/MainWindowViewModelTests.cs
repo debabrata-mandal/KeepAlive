@@ -30,6 +30,18 @@ public sealed class MainWindowViewModelTests
     }
 
     [Fact]
+    public void StartCommandPassesSimulateInputActivitySetting()
+    {
+        FakeSessionController controller = new();
+        using MainWindowViewModel viewModel = CreateViewModel(controller);
+        viewModel.Settings.SimulateInputActivity = true;
+
+        viewModel.StartCommand.Execute(null);
+
+        Assert.Equal(true, controller.StartedSimulateInputActivity);
+    }
+
+    [Fact]
     public void CustomDurationMustBeBetweenOneAndFourHundredEightyMinutes()
     {
         FakeSessionController controller = new();

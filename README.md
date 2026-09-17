@@ -3,7 +3,7 @@
 Keep Alive is a Windows tray utility for timed keep-awake sessions with manual controls, a countdown, automatic stop, and local audit history.
 
 > [!IMPORTANT]
-> Keep Alive is designed to prevent automatic system sleep during an explicitly started session. It does not bypass administrator-enforced locking, suppress screen savers, or simulate keyboard or mouse input.
+> Keep Alive is designed to prevent automatic system sleep during an explicitly started session. It does not bypass administrator-enforced locking. An optional, off-by-default setting can additionally simulate mouse activity to register the system as recently active (see [Simulated input activity](#simulated-input-activity)); check your organization's policies before enabling it.
 
 ## Design goals
 
@@ -22,6 +22,15 @@ Keep Alive is a Windows tray utility for timed keep-awake sessions with manual c
 - System-tray controls and configurable notifications.
 - Persistent default duration and launch-at-sign-in preferences.
 - Local session history retained for up to 90 days or 1,000 records.
+- Optional, off-by-default simulated input activity (see below).
+
+## Simulated input activity
+
+Preventing sleep alone does not stop presence-based idle timers (for example, Windows lock timeout or chat-app "Away" status) if the computer receives no real keyboard or mouse input. The **Simulate mouse activity during a session** setting on the Settings tab addresses this by periodically sending a zero-distance mouse-move signal through the Windows `SendInput` API while a session is active.
+
+- Off by default; it only runs during an explicitly started session and stops when the session ends.
+- Implemented as an invisible, zero-distance mouse move rather than keystrokes, so it does not move the visible cursor or insert characters into whatever window has focus.
+- This changes what the system reports as user activity. Confirm it's consistent with your organization's acceptable-use and monitoring policies before enabling it.
 
 ## Requirements
 

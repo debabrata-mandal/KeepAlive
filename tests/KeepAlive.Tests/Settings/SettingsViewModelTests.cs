@@ -46,6 +46,19 @@ public sealed class SettingsViewModelTests
     }
 
     [Fact]
+    public void SimulateInputActivityDefaultsToOffAndPersistsWhenEnabled()
+    {
+        FakeSettingsStore store = new();
+        SettingsViewModel viewModel = new(store, new FakeStartupRegistrationService());
+
+        Assert.False(viewModel.SimulateInputActivity);
+
+        viewModel.SimulateInputActivity = true;
+
+        Assert.True(store.Settings.SimulateInputActivity);
+    }
+
+    [Fact]
     public void RuntimeChangeIsRaisedEvenWhenPersistenceFails()
     {
         FakeSettingsStore store = new() { ThrowOnSave = true };

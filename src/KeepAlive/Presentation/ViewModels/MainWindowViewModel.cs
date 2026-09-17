@@ -180,7 +180,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged, IDisposable
 
         try
         {
-            _sessionController.Start(duration);
+            _sessionController.Start(duration, Settings.SimulateInputActivity);
         }
         catch (Exception exception) when (exception is KeepAwakeException or InvalidOperationException or ArgumentOutOfRangeException)
         {

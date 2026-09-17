@@ -16,6 +16,8 @@ public sealed record AppSettings
 
     public bool NotifyOnStop { get; init; } = true;
 
+    public bool SimulateInputActivity { get; init; }
+
     public AppSettings Normalize()
     {
         int duration = DefaultDurationMinutes is >= 1 and <= 480 ? DefaultDurationMinutes : 120;
